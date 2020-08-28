@@ -51,7 +51,35 @@ namespace WebApplication1.Controllers
         // GET: FilmeController/Details/5
         public ActionResult Details(int id)
         {
-            return View();
+            var filme = new Filme();
+            var connectionString = @"Data Source=(localdb)\MSSQLLocalDB;Initial Catalog=InfnetFilmes;Integrated Security=True;Connect Timeout=30;Encrypt=False;TrustServerCertificate=False;ApplicationIntent=ReadWrite;MultiSubnetFailover=False";
+
+            using var connection = new SqlConnection(connectionString);
+            var sp = "DetalharFilme";
+            var sqlCommand = new SqlCommand(sp, connection);
+            sqlCommand.CommandType = System.Data.CommandType.StoredProcedure;
+            sqlCommand.Parameters.AddWithValue("@FilmeId", id);
+
+            try
+            {
+                connection.Open();
+                using var reader = sqlCommand.ExecuteReader(System.Data.CommandBehavior.CloseConnection);
+                if (reader.Read())
+                {
+                    filme.FilmeId = (int)reader["FilmeId"];
+                    filme.Titulo = reader["Titulo"].ToString();
+                    filme.TituloOriginal = reader["TituloOriginal"].ToString();
+                }
+            } catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
+            finally
+            {
+                connection.Close();
+            }
+            
+            return View(filme);
         }
 
         // GET: FilmeController/Create
